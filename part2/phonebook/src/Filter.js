@@ -1,7 +1,7 @@
 const Filter = (props) => {
   return (
     <>
-      filter shown with
+      <span> filter shown with </span>
       <input type='text' value={props.searchTerm} onChange={props.handleSearch} />
     </>
   )
