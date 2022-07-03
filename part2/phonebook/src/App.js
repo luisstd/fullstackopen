@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
-import Filter from './Filter'
-import Form from './Form'
-import Persons from './Persons'
+import './index.css'
+
+import Filter from './components/Filter'
+import Form from './components/Form'
+import Persons from './components/Persons'
+import Notification from './components/Notification'
+
 import PersonService from './services/persons'
 
 const App = () => {
@@ -11,6 +15,9 @@ const App = () => {
     { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
     { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 },
   ])
+
+  const [message, setMessage] = useState(null)
+  const [messageType, setMessageType] = useState('')
 
   useEffect(() => {
     PersonService.getAll().then((persons) => {
@@ -60,21 +67,52 @@ const App = () => {
           name: newName,
           number: newNumber,
         }
+
         PersonService.updatePerson(existingPerson.id, person)
-        window.location.reload()
+          .catch(() => {
+            setMessageType('error')
+            setMessage(`'${person.name}' has already been removed from the server`)
+
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
+          })
+          .then((person) => {
+            setPersons(
+              persons.map((previousPerson) =>
+                previousPerson.id !== person.id ? previousPerson : person,
+              ),
+            )
+
+            setMessageType('success')
+            setMessage(`Number '${person.number}' was updated successfully`)
+
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
+          })
       }
     } else {
       const person = {
         name: newName,
         number: newNumber,
       }
+
       PersonService.createPerson(person).then((person) => setPersons(persons.concat(person)))
+
+      setMessageType('success')
+      setMessage(`Person '${person.name}' was added successfully`)
+      setTimeout(() => {
+        setMessage(null)
+      }, 5000)
     }
   }
 
   return (
     <>
       <h2>Phonebook</h2>
+
+      <Notification message={message} messageType={messageType} />
 
       <Filter searchTerm={searchTerm} handleSearch={handleSearch} />
 
