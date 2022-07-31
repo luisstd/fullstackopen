@@ -1,6 +1,10 @@
+require('dotenv').config()
+
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+
+const Person = require('./models/person')
 
 const app = express()
 
@@ -41,7 +45,9 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then((persons) => {
+    response.json(persons)
+  })
 })
 
 app.get('/api/info', (request, response) => {
@@ -50,19 +56,9 @@ app.get('/api/info', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-
-  const person = persons.find((person) => {
-    return person.id === id
-  })
-
-  if (person) {
+  Person.findById(request.params.id).then((person) => {
     response.json(person)
-  } else {
-    response.status(404).end()
-  }
-
-  response.json(person)
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -73,21 +69,28 @@ app.delete('/api/persons/:id', (request, response) => {
 })
 
 app.post('/api/persons', (request, response) => {
-  const person = request.body
-  person.id = createRandomId(500)
+  const body = request.body
 
-  if (person.id && person.name && person.number) {
-    response.json(person)
-  } else {
-    response.status(404).send({ error: 'name and number cannot be undefined' })
+  if (body.name === undefined) {
+    return response.status(400).json({ error: 'content missing' })
   }
+
+  const person = new Person({
+    id: createRandomId(500),
+    name: body.name,
+    number: body.number,
+  })
+
+  person.save().then((savedPerson) => {
+    response.json(savedPerson)
+  })
 })
 
 function createRandomId(max) {
   return Math.floor(Math.random() * max)
 }
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
