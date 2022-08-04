@@ -82,7 +82,14 @@ const App = () => {
               persons.map((previousPerson) =>
                 previousPerson.id !== person.id ? previousPerson : person,
               ),
-            )
+            ).catch((error) => {
+              setMessageType('error')
+              setMessage(error.response.data.error)
+
+              setTimeout(() => {
+                setMessage(null)
+              }, 5000)
+            })
 
             setMessageType('success')
             setMessage(`Number '${person.number}' was updated successfully`)
@@ -98,7 +105,16 @@ const App = () => {
         number: newNumber,
       }
 
-      PersonService.createPerson(person).then((person) => setPersons(persons.concat(person)))
+      PersonService.createPerson(person)
+        .then((person) => setPersons(persons.concat(person)))
+        .catch((error) => {
+          setMessageType('error')
+          setMessage(error.response.data.error)
+
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+        })
 
       setMessageType('success')
       setMessage(`Person '${person.name}' was added successfully`)
